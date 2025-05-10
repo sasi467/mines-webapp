@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mines WebApp</title>
+  <title>Mines Signal</title>
   <style>
     body {
-      background-color: #001f3f;
       font-family: Arial, sans-serif;
+      background-color: #0e0e52;
       color: white;
       display: flex;
       flex-direction: column;
@@ -16,126 +16,121 @@
       height: 100vh;
       margin: 0;
     }
-    .hidden { display: none; }
-    button {
+    .language-select, .mine-select, .grid, .buttons {
       margin: 10px;
-      padding: 10px 20px;
-      font-size: 16px;
-      border: none;
-      border-radius: 8px;
+    }
+    .flag-btn {
+      font-size: 24px;
+      margin: 0 5px;
       cursor: pointer;
     }
-    .lang-btn img {
-      width: 30px;
-      height: 30px;
+    .mine-select button, .buttons button {
+      font-size: 18px;
+      margin: 0 10px;
+      padding: 10px 20px;
+      background-color: #1e90ff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
     }
-    .stars {
-      display: flex;
-      flex-wrap: wrap;
-      max-width: 300px;
-      margin: 20px auto;
-      gap: 10px;
-      justify-content: center;
+    .mine-select span {
+      font-size: 24px;
+      margin: 0 10px;
     }
-    .star {
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(5, 50px);
+      grid-gap: 10px;
+      margin: 20px 0;
+    }
+    .cell {
       width: 50px;
       height: 50px;
-      background-color: #003366;
+      background-color: #2020a0;
+      border-radius: 5px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 24px;
-      border-radius: 8px;
-      color: gold;
+      color: yellow;
+    }
+    .promo {
+      margin-top: 10px;
+      font-size: 18px;
+      color: #ffd700;
     }
   </style>
 </head>
 <body>
-  <div id="lang-select">
-    <h2>Choose your language:</h2>
-    <button class="lang-btn" onclick="setLang('ru')">🇷🇺 Русский</button>
-    <button class="lang-btn" onclick="setLang('en')">🇬🇧 English</button>
-    <button class="lang-btn" onclick="setLang('es')">🇪🇸 Español</button>
+  <div class="language-select">
+    <button class="flag-btn" onclick="selectLanguage('ru')">🇷🇺</button>
+    <button class="flag-btn" onclick="selectLanguage('en')">🇬🇧</button>
+    <button class="flag-btn" onclick="selectLanguage('es')">🇪🇸</button>
   </div>
 
-  <div id="mine-select" class="hidden">
-    <h2 id="choose-mine-text">Choose mine count:</h2>
-    <button onclick="selectMine(3)">-3+</button>
-    <button onclick="selectMine(5)">-5+</button>
-    <button onclick="selectMine(7)">-7+</button>
-    <br />
-    <button onclick="showSignals()" id="signal-btn">Get Signal</button>
-    <p>PROMO: <b>LISAM</b></p>
-    <button onclick="goBack()">⬅ Back</button>
+  <div class="mine-select" id="mineSelect" style="display:none">
+    <button onclick="changeMines(-2)">-</button>
+    <span id="mineCount">3</span>
+    <button onclick="changeMines(2)">+</button>
   </div>
 
-  <div id="signal-display" class="hidden">
-    <div class="stars" id="stars-container"></div>
-    <button onclick="goBackToMines()">⬅ Back</button>
+  <div class="buttons" id="mainButtons" style="display:none">
+    <button onclick="generateSignal()" id="signalBtn">Get Signal</button>
+    <div class="promo">PROMO: LISAM</div>
   </div>
+
+  <div class="grid" id="grid" style="display:none"></div>
 
   <script>
     let selectedLang = 'en';
-    let starCount = 5;
+    let mineCount = 3;
 
-    function setLang(lang) {
+    function selectLanguage(lang) {
       selectedLang = lang;
-      document.getElementById('lang-select').classList.add('hidden');
-      document.getElementById('mine-select').classList.remove('hidden');
-      updateLang();
+      document.querySelector('.language-select').style.display = 'none';
+      document.getElementById('mineSelect').style.display = 'block';
+      document.getElementById('mainButtons').style.display = 'block';
     }
 
-    function updateLang() {
-      const chooseText = {
-        ru: 'Выберите количество мин:',
-        en: 'Choose mine count:',
-        es: 'Elige el número de minas:'
-      };
-      const signalBtn = {
-        ru: 'Получить сигнал',
-        en: 'Get Signal',
-        es: 'Obtener señal'
-      };
-      const backBtn = {
-        ru: '⬅ Назад',
-        en: '⬅ Back',
-        es: '⬅ Atrás'
-      };
-      document.getElementById('choose-mine-text').textContent = chooseText[selectedLang];
-      document.getElementById('signal-btn').textContent = signalBtn[selectedLang];
-    }
-
-    function selectMine(count) {
-      starCount = count;
-    }
-
-    function showSignals() {
-      document.getElementById('mine-select').classList.add('hidden');
-      document.getElementById('signal-display').classList.remove('hidden');
-      const container = document.getElementById('stars-container');
-      container.innerHTML = '';
-      for (let i = 0; i < starCount; i++) {
-        const cell = document.createElement('div');
-        cell.classList.add('star');
-        container.appendChild(cell);
-        setTimeout(() => {
-          cell.textContent = '★';
-        }, i * 300);
+    function changeMines(delta) {
+      const newCount = mineCount + delta;
+      if ([3, 5, 7].includes(newCount)) {
+        mineCount = newCount;
+        document.getElementById('mineCount').innerText = mineCount;
       }
     }
 
-    function goBack() {
-      document.getElementById('mine-select').classList.add('hidden');
-      document.getElementById('lang-select').classList.remove('hidden');
-    }
+    function generateSignal() {
+      const grid = document.getElementById('grid');
+      grid.innerHTML = '';
+      grid.style.display = 'grid';
 
-    function goBackToMines() {
-      document.getElementById('signal-display').classList.add('hidden');
-      document.getElementById('mine-select').classList.remove('hidden');
+      const safeCells = new Set();
+      while (safeCells.size < 5) {
+        safeCells.add(Math.floor(Math.random() * 25));
+      }
+
+      for (let i = 0; i < 25; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.innerHTML = '';
+        grid.appendChild(cell);
+      }
+
+      const cells = document.querySelectorAll('.cell');
+      let index = 0;
+      for (const i of safeCells) {
+        setTimeout(() => {
+          cells[i].textContent = '⭐';
+        }, 300 * index);
+        index++;
+      }
     }
   </script>
 </body>
 </html>
+
 
 
 
