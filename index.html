@@ -2,117 +2,154 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lucky Jet Signal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mines Signal</title>
   <style>
     body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #0d0d0d;
-      color: #fff;
+      background-color: #0a1a3c;
+      font-family: sans-serif;
+      color: white;
       text-align: center;
+      padding: 10px;
     }
-
-    .container {
-      padding: 20px;
-    }
-
-    .banner {
-      max-width: 200px;
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(5, 60px);
+      grid-gap: 10px;
+      justify-content: center;
       margin: 20px auto;
     }
-
-    .coefficient {
-      font-size: 2.5em;
-      margin: 10px 0;
-    }
-
-    .button {
-      background-color: #4CAF50;
-      border: none;
-      color: white;
-      padding: 15px 30px;
-      text-align: center;
-      text-decoration: none;
-      display: inline-block;
-      font-size: 16px;
-      margin: 10px;
+    .cell {
+      width: 60px;
+      height: 60px;
+      background-color: #112d64;
+      border-radius: 10px;
       cursor: pointer;
-      border-radius: 8px;
+      font-size: 24px;
+      line-height: 60px;
     }
-
-    .lang-select, .back-button {
-      position: fixed;
-      bottom: 20px;
-    }
-
-    .lang-select {
-      left: 50%;
-      transform: translateX(-50%);
-    }
-
-    .back-button {
-      left: 20px;
-    }
-
-    .promo {
-      font-size: 1.2em;
-      color: #ffd700;
+    .controls {
       margin-top: 10px;
-      display: inline-block;
+    }
+    button {
+      background: #1989ff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 18px;
+      border-radius: 10px;
+      margin: 5px;
+      cursor: pointer;
+    }
+    .promo {
+      font-weight: bold;
+      margin: 10px 0 5px;
       animation: blink 1s infinite;
     }
-
     @keyframes blink {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.4; }
     }
+    .chance {
+      margin-bottom: 10px;
+    }
+    .lang-select {
+      margin-top: 50px;
+    }
+    .lang-btn {
+      margin: 10px;
+      font-size: 18px;
+    }
   </style>
 </head>
 <body>
-  <div class="container" id="main">
-    <img src="banner.jpg" alt="Lucky Jet" class="banner" />
-    <div class="promo">PROMO: LISAM</div>
-    <div class="coefficient" id="coefficient">0.00x</div>
-    <div id="chance"></div>
-    <button class="button" onclick="generateSignal()" id="signal-btn">Get Signal</button>
-    <button class="button" onclick="goBack()" id="back-btn">⬅️ Back</button>
+
+<div id="languageSelect" class="lang-select">
+  <h2>👋 Please choose your language:</h2>
+  <button class="lang-btn" onclick="setLang('ru')">🇷🇺 Русский</button>
+  <button class="lang-btn" onclick="setLang('en')">🇬🇧 English</button>
+  <button class="lang-btn" onclick="setLang('es')">🇪🇸 Español</button>
+</div>
+
+<div id="mainUI" style="display: none;">
+  <div class="promo">PROMO: LISAM</div>
+  <div class="chance" id="chanceLabel"></div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="controls">
+    <div>
+      <button onclick="changeMines(-2)">-</button>
+      <span id="mineCount">3</span>
+      <button onclick="changeMines(2)">+</button>
+    </div>
+    <button onclick="generateSignal()" id="signalBtn">Get Signal</button>
+    <button onclick="goBack()" id="backBtn">⬅️ Back</button>
   </div>
+</div>
 
-  <div class="lang-select" id="language-selector">
-    <button onclick="setLang('ru')">🇷🇺 Русский</button>
-    <button onclick="setLang('en')">🇬🇧 English</button>
-    <button onclick="setLang('es')">🇪🇸 Español</button>
-  </div>
+<script>
+  let lang = 'en';
+  let mines = 3;
+  let translations = {
+    ru: { signal: 'Получить сигнал', chance: 'Шанс: ', back: '⬅️ Назад' },
+    en: { signal: 'Get Signal', chance: 'Chance: ', back: '⬅️ Back' },
+    es: { signal: 'Obtener señal', chance: 'Éxito: ', back: '⬅️ Atrás' }
+  };
 
-  <script>
-    let lang = 'en';
+  function setLang(selected) {
+    lang = selected;
+    document.getElementById("languageSelect").style.display = "none";
+    document.getElementById("mainUI").style.display = "block";
+    updateText();
+    generateSignal();
+  }
 
-    const translations = {
-      en: { signal: "Get Signal", back: "⬅️ Back", chance: "Chance" },
-      ru: { signal: "Получить сигнал", back: "⬅️ Назад", chance: "Шанс" },
-      es: { signal: "Obtener señal", back: "⬅️ Atrás", chance: "Probabilidad" }
-    };
+  function updateText() {
+    document.getElementById("signalBtn").innerText = translations[lang].signal;
+    document.getElementById("backBtn").innerText = translations[lang].back;
+  }
 
-    function setLang(selected) {
-      lang = selected;
-      document.getElementById('language-selector').style.display = 'none';
-      document.getElementById('back-btn').style.display = 'inline-block';
-      document.getElementById('signal-btn').innerText = translations[lang].signal;
-      document.getElementById('back-btn').innerText = translations[lang].back;
+  function goBack() {
+    document.getElementById("mainUI").style.display = "none";
+    document.getElementById("languageSelect").style.display = "block";
+  }
+
+  function changeMines(delta) {
+    mines += delta;
+    if (mines < 3) mines = 3;
+    if (mines > 7) mines = 7;
+    document.getElementById("mineCount").innerText = mines;
+  }
+
+  function generateSignal() {
+    let grid = document.getElementById("grid");
+    grid.innerHTML = '';
+    let cells = Array.from({ length: 25 }, (_, i) => i);
+    let stars = [];
+
+    while (stars.length < mines) {
+      let rand = cells.splice(Math.floor(Math.random() * cells.length), 1)[0];
+      stars.push(rand);
     }
 
-    function goBack() {
-      document.getElementById('language-selector').style.display = 'block';
-      document.getElementById('back-btn').style.display = 'none';
+    for (let i = 0; i < 25; i++) {
+      let div = document.createElement("div");
+      div.className = "cell";
+      grid.appendChild(div);
     }
 
-    function generateSignal() {
-      const coef = (Math.random() * 100).toFixed(2);
-      document.getElementById('coefficient').innerText = coef + 'x';
-      document.getElementById('chance').innerText = `${translations[lang].chance}: ${(Math.random() * (95 - 80) + 80).toFixed(1)}%`;
-    }
-  </script>
+    stars.forEach((pos, index) => {
+      setTimeout(() => {
+        grid.children[pos].innerText = "⭐";
+      }, 300 * index);
+    });
+
+    const chance = (80 + Math.random() * 12).toFixed(1);
+    document.getElementById("chanceLabel").innerText = `${translations[lang].chance}${chance}%`;
+  }
+</script>
+
 </body>
 </html>
 
