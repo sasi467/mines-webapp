@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mini Games</title>
+  <title>Game Signals</title>
   <style>
     body {
       margin: 0;
@@ -13,120 +13,129 @@
       text-align: center;
       padding: 20px;
     }
-    .lang-select button,
-    .game-button,
-    .back-button {
-      padding: 10px 20px;
+    .lang-select, .back-button {
       margin: 10px;
-      font-size: 18px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-    }
-    .lang-select {
-      margin-top: 50px;
     }
     .game-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-      margin-top: 30px;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+      margin-top: 20px;
     }
-    .game-button {
-      background-color: #1989ff;
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+    .game-card {
+      background: #1c1c1c;
+      border-radius: 10px;
+      padding: 10px;
+      cursor: pointer;
     }
-    .game-button img {
-      width: 100px;
+    .game-card img {
+      width: 100%;
       height: 100px;
       object-fit: cover;
-      margin-bottom: 10px;
-      border-radius: 10px;
+      border-radius: 8px;
     }
-    .hidden {
-      display: none;
+    .game-card p {
+      margin: 8px 0 0;
     }
-    .back-button {
-      background-color: #555;
-      color: #fff;
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
+    .button {
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 8px;
+      margin: 5px;
+      cursor: pointer;
     }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
-  <div id="languageSelect" class="lang-select">
+  <div id="languageSelector">
     <h2>👋 Please choose your language:</h2>
-    <button onclick="setLang('ru')">🇷🇺 Русский</button>
-    <button onclick="setLang('en')">🇬🇧 English</button>
-    <button onclick="setLang('es')">🇪🇸 Español</button>
+    <button class="button" onclick="setLang('ru')">🇷🇺 Русский</button>
+    <button class="button" onclick="setLang('en')">🇬🇧 English</button>
+    <button class="button" onclick="setLang('es')">🇪🇸 Español</button>
   </div>
 
-  <div id="gameMenu" class="hidden">
-    <h2 id="gameMenuTitle">Choose a game</h2>
-    <div class="game-grid">
-      <button class="game-button" onclick="enterGame(1)"><img src="https://via.placeholder.com/100" alt="Game 1"><span>Game 1</span></button>
-      <button class="game-button" onclick="enterGame(2)"><img src="https://via.placeholder.com/100" alt="Game 2"><span>Game 2</span></button>
-      <button class="game-button" onclick="enterGame(3)"><img src="https://via.placeholder.com/100" alt="Game 3"><span>Game 3</span></button>
-      <button class="game-button" onclick="enterGame(4)"><img src="https://via.placeholder.com/100" alt="Game 4"><span>Game 4</span></button>
-      <button class="game-button" onclick="enterGame(5)"><img src="https://via.placeholder.com/100" alt="Game 5"><span>Game 5</span></button>
-      <button class="game-button" onclick="enterGame(6)"><img src="https://via.placeholder.com/100" alt="Game 6"><span>Game 6</span></button>
-      <button class="game-button" onclick="enterGame(7)"><img src="https://via.placeholder.com/100" alt="Game 7"><span>Game 7</span></button>
-      <button class="game-button" onclick="enterGame(8)"><img src="https://via.placeholder.com/100" alt="Game 8"><span>Game 8</span></button>
-      <button class="game-button" onclick="enterGame(9)"><img src="https://via.placeholder.com/100" alt="Game 9"><span>Game 9</span></button>
-      <button class="game-button" onclick="enterGame(10)"><img src="https://via.placeholder.com/100" alt="Game 10"><span>Game 10</span></button>
-      <button class="game-button" onclick="enterGame(11)"><img src="https://via.placeholder.com/100" alt="Game 11"><span>Game 11</span></button>
-      <button class="game-button" onclick="enterGame(12)"><img src="https://via.placeholder.com/100" alt="Game 12"><span>Game 12</span></button>
-    </div>
-    <button class="back-button" onclick="goBackToLang()">⬅️ Back</button>
+  <div id="gameSelector" class="hidden">
+    <h2 id="selectGameText">Select a Game</h2>
+    <div class="game-grid" id="games"></div>
+    <button class="button" onclick="goBackToLang()" id="backToLang">⬅️ Back</button>
   </div>
 
-  <div id="gameView" class="hidden">
-    <h2 id="gameTitle">Game Placeholder</h2>
-    <p>This is a placeholder for the selected game.</p>
-    <button class="back-button" onclick="goBackToMenu()">⬅️ Back</button>
+  <div id="gameUI" class="hidden">
+    <h2 id="gameTitle">Game</h2>
+    <div class="promo">PROMO: LISAM</div>
+    <div id="signalOutput"></div>
+    <button class="button" onclick="generateSignal()" id="signalBtn">Get Signal</button>
+    <button class="button" onclick="goBackToGames()" id="backToGames">⬅️ Back</button>
   </div>
 
   <script>
     let lang = 'en';
+    const games = [
+      'Mines', 'Crash', 'Aviator', 'Plinko', 'Dice', 'Roulette',
+      'Tower', 'Wheel', 'Case Opening', 'Keno', 'Coin Flip', 'Hi-Lo'
+    ];
+
     const translations = {
-      en: { menu: "Choose a game", back: "⬅️ Back", placeholder: "This is a placeholder for the selected game." },
-      ru: { menu: "Выберите игру", back: "⬅️ Назад", placeholder: "Заглушка для выбранной игры." },
-      es: { menu: "Elige un juego", back: "⬅️ Atrás", placeholder: "Marcador de posición para el juego seleccionado." }
+      en: { selectGame: 'Select a Game', signal: 'Get Signal', back: '⬅️ Back', chance: 'Chance' },
+      ru: { selectGame: 'Выберите игру', signal: 'Получить сигнал', back: '⬅️ Назад', chance: 'Шанс' },
+      es: { selectGame: 'Selecciona un juego', signal: 'Obtener señal', back: '⬅️ Atrás', chance: 'Probabilidad' }
     };
 
     function setLang(selected) {
       lang = selected;
-      document.getElementById("languageSelect").classList.add("hidden");
-      document.getElementById("gameMenu").classList.remove("hidden");
-      document.getElementById("gameMenuTitle").innerText = translations[lang].menu;
-      document.querySelectorAll(".back-button").forEach(btn => btn.innerText = translations[lang].back);
+      document.getElementById('languageSelector').classList.add('hidden');
+      document.getElementById('gameSelector').classList.remove('hidden');
+      updateTexts();
     }
 
-    function enterGame(id) {
-      document.getElementById("gameMenu").classList.add("hidden");
-      document.getElementById("gameView").classList.remove("hidden");
-      document.getElementById("gameTitle").innerText = `Game ${id}`;
-      document.querySelector("#gameView p").innerText = translations[lang].placeholder;
+    function updateTexts() {
+      document.getElementById('selectGameText').innerText = translations[lang].selectGame;
+      document.getElementById('backToLang').innerText = translations[lang].back;
+      document.getElementById('signalBtn').innerText = translations[lang].signal;
+      document.getElementById('backToGames').innerText = translations[lang].back;
     }
 
     function goBackToLang() {
-      document.getElementById("languageSelect").classList.remove("hidden");
-      document.getElementById("gameMenu").classList.add("hidden");
+      document.getElementById('gameSelector').classList.add('hidden');
+      document.getElementById('languageSelector').classList.remove('hidden');
     }
 
-    function goBackToMenu() {
-      document.getElementById("gameView").classList.add("hidden");
-      document.getElementById("gameMenu").classList.remove("hidden");
+    function goBackToGames() {
+      document.getElementById('gameUI').classList.add('hidden');
+      document.getElementById('gameSelector').classList.remove('hidden');
     }
+
+    function generateSignal() {
+      const coef = (Math.random() * 100).toFixed(2);
+      const chance = (80 + Math.random() * 15).toFixed(1);
+      document.getElementById('signalOutput').innerHTML =
+        `<div style="font-size:2em;margin:10px 0;">${coef}x</div><div>${translations[lang].chance}: ${chance}%</div>`;
+    }
+
+    function selectGame(game) {
+      document.getElementById('gameSelector').classList.add('hidden');
+      document.getElementById('gameUI').classList.remove('hidden');
+      document.getElementById('gameTitle').innerText = game;
+      document.getElementById('signalOutput').innerHTML = '';
+    }
+
+    window.onload = () => {
+      const gameContainer = document.getElementById('games');
+      games.forEach(game => {
+        const card = document.createElement('div');
+        card.className = 'game-card';
+        card.innerHTML = `<img src="https://via.placeholder.com/120x100?text=${game}"><p>${game}</p>`;
+        card.onclick = () => selectGame(game);
+        gameContainer.appendChild(card);
+      });
+    };
   </script>
 </body>
 </html>
-
 
 
 
