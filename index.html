@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mines Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #1a1a1a;
+      color: #fff;
+      text-align: center;
+      padding: 20px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(5, 60px);
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .cell {
+      width: 60px;
+      height: 60px;
+      background-color: #2b2b2b;
+      border: 2px solid #444;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .cell.open {
+      background-color: #3a3;
+    }
+  </style>
+</head>
+<body>
+  <h1>💣 Mines</h1>
+  <p>Нажми на клетку, чтобы открыть</p>
+  <div class="grid" id="grid"></div>
+
+  <script>
+    const grid = document.getElementById("grid");
+
+    function createGrid() {
+      for (let i = 0; i < 25; i++) {
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        cell.onclick = () => {
+          if (!cell.classList.contains("open")) {
+            cell.classList.add("open");
+            cell.textContent = "✅";
+          }
+        };
+        grid.appendChild(cell);
+      }
+    }
+
+    createGrid();
+  </script>
+</body>
+</html>
+Add index.html
