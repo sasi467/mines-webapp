@@ -2,115 +2,160 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Mines Signal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mines Signal WebApp</title>
   <style>
     body {
-      background: #0f172a;
-      color: white;
+      background-color: #0b1f33;
+      color: #fff;
       font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 20px;
-    }
-
-    h1 {
-      margin-bottom: 10px;
-    }
-
-    .promo {
-      font-weight: bold;
-      margin: 10px 0;
-      color: #38bdf8;
-      font-size: 18px;
-    }
-
-    #grid {
-      display: grid;
-      grid-template-columns: repeat(5, 50px);
-      grid-template-rows: repeat(5, 50px);
-      gap: 5px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       justify-content: center;
-      margin: 20px auto;
+      height: 100vh;
+      margin: 0;
     }
-
+    h1 {
+      margin-bottom: 20px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(5, 60px);
+      grid-gap: 10px;
+      margin-bottom: 20px;
+    }
     .cell {
-      width: 50px;
-      height: 50px;
-      background-color: #1e40af;
-      border-radius: 6px;
+      width: 60px;
+      height: 60px;
+      background-color: #1d4ed8;
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: background 0.3s ease;
+      font-size: 28px;
+      color: #fff;
     }
-
-    .star {
-      font-size: 24px;
-      animation: pop 0.3s ease forwards;
+    .hidden {
+      background-color: #1d4ed8;
     }
-
-    @keyframes pop {
-      0% {
-        transform: scale(0);
-        opacity: 0;
-      }
-      100% {
-        transform: scale(1);
-        opacity: 1;
-      }
+    .revealed {
+      background-color: #22c55e;
+      animation: reveal 0.3s ease-in;
     }
-
+    @keyframes reveal {
+      from { transform: scale(0.5); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .controls {
+      margin-top: 20px;
+      text-align: center;
+    }
     button {
-      background-color: #3b82f6;
+      background-color: #2563eb;
       color: white;
       border: none;
       padding: 10px 20px;
+      margin: 5px;
+      border-radius: 8px;
       font-size: 16px;
-      border-radius: 10px;
       cursor: pointer;
-      margin-top: 10px;
     }
-
-    button:hover {
-      background-color: #2563eb;
+    select {
+      padding: 5px;
+      font-size: 16px;
+      border-radius: 5px;
     }
   </style>
 </head>
 <body>
-  <h1>MINES SIGNAL</h1>
-  <div class="promo">PROMO: LISAM</div>
-  <div id="grid"></div>
-  <button onclick="showSignal()">Get Signal 💡</button>
+  <h1 id="title">Choose your language</h1>
+  <div class="controls" id="lang-select">
+    <button onclick="setLang('en')">English</button>
+    <button onclick="setLang('ru')">Русский</button>
+    <button onclick="setLang('es')">Español</button>
+  </div>
+
+  <div class="controls" id="mine-count" style="display: none;">
+    <label id="choose-mines">Choose number of mines:</label><br>
+    <button onclick="startGame(3)">3</button>
+    <button onclick="startGame(5)">5</button>
+    <button onclick="startGame(7)">7</button>
+  </div>
+
+  <div class="grid" id="grid" style="display: none;"></div>
+
+  <div class="controls" style="display: none;" id="signal-section">
+    <p><strong>PROMO: LISAM</strong></p>
+    <button onclick="revealCells()" id="signal-btn">Get signal</button>
+  </div>
 
   <script>
-    const grid = document.getElementById("grid");
-    const size = 5;
-    const totalCells = size * size;
+    const translations = {
+      en: {
+        title: "Choose number of mines:",
+        signalBtn: "Get signal",
+        chooseMines: "Choose number of mines:",
+      },
+      ru: {
+        title: "Выберите количество мин:",
+        signalBtn: "Получить сигнал",
+        chooseMines: "Выберите количество мин:",
+      },
+      es: {
+        title: "Elige el número de minas:",
+        signalBtn: "Obtener señal",
+        chooseMines: "Elige el número de minas:",
+      }
+    };
 
-    // Создаем поле 5x5
-    for (let i = 0; i < totalCells; i++) {
-      const cell = document.createElement("div");
-      cell.className = "cell";
-      grid.appendChild(cell);
+    let lang = 'en';
+
+    function setLang(l) {
+      lang = l;
+      document.getElementById('title').innerText = translations[lang].title;
+      document.getElementById('choose-mines').innerText = translations[lang].chooseMines;
+      document.getElementById('signal-btn').innerText = translations[lang].signalBtn;
+      document.getElementById('lang-select').style.display = 'none';
+      document.getElementById('mine-count').style.display = 'block';
     }
 
-    function showSignal() {
-      const starsCount = Math.floor(Math.random() * 2) + 4; // 4–5 звёзд
-      const cells = Array.from(document.querySelectorAll(".cell"));
-      cells.forEach(cell => cell.innerHTML = ""); // очистка
+    let numMines = 3;
+    let revealed = 0;
 
-      const selected = new Set();
-      while (selected.size < starsCount) {
-        const index = Math.floor(Math.random() * totalCells);
-        selected.add(index);
+    function startGame(mines) {
+      numMines = mines;
+      const grid = document.getElementById('grid');
+      grid.innerHTML = '';
+      revealed = 0;
+      for (let i = 0; i < 25; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell hidden';
+        cell.innerText = '';
+        grid.appendChild(cell);
       }
+      document.getElementById('grid').style.display = 'grid';
+      document.getElementById('signal-section').style.display = 'block';
+    }
 
-      selected.forEach(i => {
-        const star = document.createElement("div");
-        star.className = "star";
-        star.innerText = "⭐";
-        cells[i].appendChild(star);
-      });
+    function revealCells() {
+      const cells = Array.from(document.querySelectorAll('.cell'));
+      const safeIndices = [];
+      while (safeIndices.length < (25 - numMines)) {
+        const index = Math.floor(Math.random() * 25);
+        if (!safeIndices.includes(index)) safeIndices.push(index);
+      }
+      let i = 0;
+      function revealNext() {
+        if (i >= safeIndices.length || i >= 5) return;
+        const cell = cells[safeIndices[i]];
+        cell.classList.remove('hidden');
+        cell.classList.add('revealed');
+        cell.innerText = '⭐';
+        i++;
+        setTimeout(revealNext, 300);
+      }
+      revealNext();
     }
   </script>
 </body>
