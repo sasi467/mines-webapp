@@ -2,138 +2,154 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Game Signals</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mines Signal</title>
   <style>
     body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #0d0d0d;
-      color: #fff;
-      text-align: center;
-      padding: 20px;
-    }
-    .lang-select, .back-button {
-      margin: 10px;
-    }
-    .game-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 10px;
-      margin-top: 20px;
-    }
-    .game-card {
-      background: #1c1c1c;
-      border-radius: 10px;
-      padding: 10px;
-      cursor: pointer;
-    }
-    .game-card img {
-      width: 100%;
-      height: 100px;
-      object-fit: cover;
-      border-radius: 8px;
-    }
-    .game-card p {
-      margin: 8px 0 0;
-    }
-    .button {
-      background-color: #4CAF50;
-      border: none;
+      background-color: #0a1a3c;
+      font-family: sans-serif;
       color: white;
+      text-align: center;
+      padding: 10px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(5, 60px);
+      grid-gap: 10px;
+      justify-content: center;
+      margin: 20px auto;
+    }
+    .cell {
+      width: 60px;
+      height: 60px;
+      background-color: #112d64;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 24px;
+      line-height: 60px;
+    }
+    .controls {
+      margin-top: 10px;
+    }
+    button {
+      background: #1989ff;
+      color: white;
+      border: none;
       padding: 10px 20px;
-      font-size: 16px;
-      border-radius: 8px;
+      font-size: 18px;
+      border-radius: 10px;
       margin: 5px;
       cursor: pointer;
     }
-    .hidden { display: none; }
+    .promo {
+      font-weight: bold;
+      margin: 10px 0 5px;
+      animation: blink 1s infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .chance {
+      margin-bottom: 10px;
+    }
+    .lang-select {
+      margin-top: 50px;
+    }
+    .lang-btn {
+      margin: 10px;
+      font-size: 18px;
+    }
   </style>
 </head>
 <body>
-  <div id="languageSelector">
-    <h2>👋 Please choose your language:</h2>
-    <button class="button" onclick="setLang('ru')">🇷🇺 Русский</button>
-    <button class="button" onclick="setLang('en')">🇬🇧 English</button>
-    <button class="button" onclick="setLang('es')">🇪🇸 Español</button>
+
+<div id="languageSelect" class="lang-select">
+  <h2>👋 Please choose your language:</h2>
+  <button class="lang-btn" onclick="setLang('ru')">🇷🇺 Русский</button>
+  <button class="lang-btn" onclick="setLang('en')">🇬🇧 English</button>
+  <button class="lang-btn" onclick="setLang('es')">🇪🇸 Español</button>
+</div>
+
+<div id="mainUI" style="display: none;">
+  <div class="promo">PROMO: LISAM</div>
+  <div class="chance" id="chanceLabel"></div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="controls">
+    <div>
+      <button onclick="changeMines(-2)">-</button>
+      <span id="mineCount">3</span>
+      <button onclick="changeMines(2)">+</button>
+    </div>
+    <button onclick="generateSignal()" id="signalBtn">Get Signal</button>
+    <button onclick="goBack()" id="backBtn">⬅️ Back</button>
   </div>
+</div>
 
-  <div id="gameSelector" class="hidden">
-    <h2 id="selectGameText">Select a Game</h2>
-    <div class="game-grid" id="games"></div>
-    <button class="button" onclick="goBackToLang()" id="backToLang">⬅️ Back</button>
-  </div>
+<script>
+  let lang = 'en';
+  let mines = 3;
+  let translations = {
+    ru: { signal: 'Получить сигнал', chance: 'Шанс: ', back: '⬅️ Назад' },
+    en: { signal: 'Get Signal', chance: 'Chance: ', back: '⬅️ Back' },
+    es: { signal: 'Obtener señal', chance: 'Éxito: ', back: '⬅️ Atrás' }
+  };
 
-  <div id="gameUI" class="hidden">
-    <h2 id="gameTitle">Game</h2>
-    <div class="promo">PROMO: LISAM</div>
-    <div id="signalOutput"></div>
-    <button class="button" onclick="generateSignal()" id="signalBtn">Get Signal</button>
-    <button class="button" onclick="goBackToGames()" id="backToGames">⬅️ Back</button>
-  </div>
+  function setLang(selected) {
+    lang = selected;
+    document.getElementById("languageSelect").style.display = "none";
+    document.getElementById("mainUI").style.display = "block";
+    updateText();
+    generateSignal();
+  }
 
-  <script>
-    let lang = 'en';
-    const games = [
-      'Mines', 'Crash', 'Aviator', 'Plinko', 'Dice', 'Roulette',
-      'Tower', 'Wheel', 'Case Opening', 'Keno', 'Coin Flip', 'Hi-Lo'
-    ];
+  function updateText() {
+    document.getElementById("signalBtn").innerText = translations[lang].signal;
+    document.getElementById("backBtn").innerText = translations[lang].back;
+  }
 
-    const translations = {
-      en: { selectGame: 'Select a Game', signal: 'Get Signal', back: '⬅️ Back', chance: 'Chance' },
-      ru: { selectGame: 'Выберите игру', signal: 'Получить сигнал', back: '⬅️ Назад', chance: 'Шанс' },
-      es: { selectGame: 'Selecciona un juego', signal: 'Obtener señal', back: '⬅️ Atrás', chance: 'Probabilidad' }
-    };
+  function goBack() {
+    document.getElementById("mainUI").style.display = "none";
+    document.getElementById("languageSelect").style.display = "block";
+  }
 
-    function setLang(selected) {
-      lang = selected;
-      document.getElementById('languageSelector').classList.add('hidden');
-      document.getElementById('gameSelector').classList.remove('hidden');
-      updateTexts();
+  function changeMines(delta) {
+    mines += delta;
+    if (mines < 3) mines = 3;
+    if (mines > 7) mines = 7;
+    document.getElementById("mineCount").innerText = mines;
+  }
+
+  function generateSignal() {
+    let grid = document.getElementById("grid");
+    grid.innerHTML = '';
+    let cells = Array.from({ length: 25 }, (_, i) => i);
+    let stars = [];
+
+    while (stars.length < mines) {
+      let rand = cells.splice(Math.floor(Math.random() * cells.length), 1)[0];
+      stars.push(rand);
     }
 
-    function updateTexts() {
-      document.getElementById('selectGameText').innerText = translations[lang].selectGame;
-      document.getElementById('backToLang').innerText = translations[lang].back;
-      document.getElementById('signalBtn').innerText = translations[lang].signal;
-      document.getElementById('backToGames').innerText = translations[lang].back;
+    for (let i = 0; i < 25; i++) {
+      let div = document.createElement("div");
+      div.className = "cell";
+      grid.appendChild(div);
     }
 
-    function goBackToLang() {
-      document.getElementById('gameSelector').classList.add('hidden');
-      document.getElementById('languageSelector').classList.remove('hidden');
-    }
+    stars.forEach((pos, index) => {
+      setTimeout(() => {
+        grid.children[pos].innerText = "⭐";
+      }, 300 * index);
+    });
 
-    function goBackToGames() {
-      document.getElementById('gameUI').classList.add('hidden');
-      document.getElementById('gameSelector').classList.remove('hidden');
-    }
+    const chance = (80 + Math.random() * 12).toFixed(1);
+    document.getElementById("chanceLabel").innerText = `${translations[lang].chance}${chance}%`;
+  }
+</script>
 
-    function generateSignal() {
-      const coef = (Math.random() * 100).toFixed(2);
-      const chance = (80 + Math.random() * 15).toFixed(1);
-      document.getElementById('signalOutput').innerHTML =
-        `<div style="font-size:2em;margin:10px 0;">${coef}x</div><div>${translations[lang].chance}: ${chance}%</div>`;
-    }
-
-    function selectGame(game) {
-      document.getElementById('gameSelector').classList.add('hidden');
-      document.getElementById('gameUI').classList.remove('hidden');
-      document.getElementById('gameTitle').innerText = game;
-      document.getElementById('signalOutput').innerHTML = '';
-    }
-
-    window.onload = () => {
-      const gameContainer = document.getElementById('games');
-      games.forEach(game => {
-        const card = document.createElement('div');
-        card.className = 'game-card';
-        card.innerHTML = `<img src="https://via.placeholder.com/120x100?text=${game}"><p>${game}</p>`;
-        card.onclick = () => selectGame(game);
-        gameContainer.appendChild(card);
-      });
-    };
-  </script>
 </body>
 </html>
 
