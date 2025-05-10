@@ -3,133 +3,153 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mines Signal</title>
+  <title>Mines Signal WebApp</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #0e0e52;
+      font-family: sans-serif;
+      background: #001f3f;
       color: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
+      text-align: center;
     }
-    .language-select, .mine-select, .grid, .buttons {
+    .language-selector button {
+      font-size: 18px;
       margin: 10px;
     }
-    .flag-btn {
-      font-size: 24px;
-      margin: 0 5px;
-      cursor: pointer;
-    }
-    .mine-select button, .buttons button {
-      font-size: 18px;
-      margin: 0 10px;
-      padding: 10px 20px;
-      background-color: #1e90ff;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    .mine-select span {
-      font-size: 24px;
-      margin: 0 10px;
-    }
-    .grid {
+    .mine-grid {
       display: grid;
-      grid-template-columns: repeat(5, 50px);
+      grid-template-columns: repeat(5, 60px);
       grid-gap: 10px;
-      margin: 20px 0;
+      justify-content: center;
+      margin: 20px auto;
     }
     .cell {
-      width: 50px;
-      height: 50px;
-      background-color: #2020a0;
-      border-radius: 5px;
+      width: 60px;
+      height: 60px;
+      background-color: #0074D9;
+      border-radius: 10px;
+      font-size: 24px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 24px;
-      color: yellow;
+      cursor: pointer;
+    }
+    .controls {
+      margin: 20px auto;
     }
     .promo {
-      margin-top: 10px;
-      font-size: 18px;
-      color: #ffd700;
+      margin: 10px auto;
+      font-size: 20px;
+      color: #FFD700;
+    }
+    .chance {
+      font-size: 16px;
+      color: #00FF00;
+    }
+    .mine-count-selector {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+    }
+    .mine-count-selector button {
+      font-size: 20px;
     }
   </style>
 </head>
 <body>
-  <div class="language-select">
-    <button class="flag-btn" onclick="selectLanguage('ru')">🇷🇺</button>
-    <button class="flag-btn" onclick="selectLanguage('en')">🇬🇧</button>
-    <button class="flag-btn" onclick="selectLanguage('es')">🇪🇸</button>
+  <div class="language-selector">
+    <p id="language-prompt">Please choose your language:</p>
+    <button onclick="setLanguage('ru')">🇷🇺</button>
+    <button onclick="setLanguage('en')">🇬🇧</button>
+    <button onclick="setLanguage('es')">🇪🇸</button>
   </div>
 
-  <div class="mine-select" id="mineSelect" style="display:none">
-    <button onclick="changeMines(-2)">-</button>
-    <span id="mineCount">3</span>
-    <button onclick="changeMines(2)">+</button>
-  </div>
+  <div id="app" style="display:none;">
+    <div class="mine-count-selector">
+      <button onclick="changeMines(-1)">-</button>
+      <span id="mine-count">3</span>
+      <button onclick="changeMines(1)">+</button>
+    </div>
 
-  <div class="buttons" id="mainButtons" style="display:none">
-    <button onclick="generateSignal()" id="signalBtn">Get Signal</button>
+    <div class="controls">
+      <button onclick="revealSignal()" id="signal-button">Get Signal</button>
+    </div>
+
     <div class="promo">PROMO: LISAM</div>
-  </div>
+    <div class="chance" id="win-chance">Win chance: 90.4%</div>
 
-  <div class="grid" id="grid" style="display:none"></div>
+    <div class="mine-grid" id="grid"></div>
+  </div>
 
   <script>
-    let selectedLang = 'en';
+    const texts = {
+      en: {
+        prompt: "Please choose your language:",
+        signal: "Get Signal",
+        chance: "Win chance",
+      },
+      ru: {
+        prompt: "Пожалуйста, выберите язык:",
+        signal: "Получить сигнал",
+        chance: "Шанс победы",
+      },
+      es: {
+        prompt: "Por favor, elige tu idioma:",
+        signal: "Obtener señal",
+        chance: "Probabilidad de ganar",
+      }
+    };
+
+    let language = 'en';
     let mineCount = 3;
 
-    function selectLanguage(lang) {
-      selectedLang = lang;
-      document.querySelector('.language-select').style.display = 'none';
-      document.getElementById('mineSelect').style.display = 'block';
-      document.getElementById('mainButtons').style.display = 'block';
+    function setLanguage(lang) {
+      language = lang;
+      document.getElementById('language-prompt').innerText = texts[lang].prompt;
+      document.getElementById('signal-button').innerText = texts[lang].signal;
+      updateChance();
+      document.querySelector('.language-selector').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
     }
 
     function changeMines(delta) {
-      const newCount = mineCount + delta;
-      if ([3, 5, 7].includes(newCount)) {
-        mineCount = newCount;
-        document.getElementById('mineCount').innerText = mineCount;
+      const values = [3, 5, 7];
+      let index = values.indexOf(mineCount) + delta;
+      if (index >= 0 && index < values.length) {
+        mineCount = values[index];
+        document.getElementById('mine-count').innerText = mineCount;
       }
     }
 
-    function generateSignal() {
+    function updateChance() {
+      const randomChance = (80 + Math.random() * 12).toFixed(1);
+      document.getElementById('win-chance').innerText = `${texts[language].chance}: ${randomChance}%`;
+    }
+
+    function revealSignal() {
       const grid = document.getElementById('grid');
       grid.innerHTML = '';
-      grid.style.display = 'grid';
 
-      const safeCells = new Set();
-      while (safeCells.size < 5) {
-        safeCells.add(Math.floor(Math.random() * 25));
-      }
-
+      const stars = [];
       for (let i = 0; i < 25; i++) {
         const cell = document.createElement('div');
         cell.className = 'cell';
-        cell.innerHTML = '';
+        stars.push(cell);
         grid.appendChild(cell);
       }
 
-      const cells = document.querySelectorAll('.cell');
-      let index = 0;
-      for (const i of safeCells) {
+      stars.forEach((cell, index) => {
         setTimeout(() => {
-          cells[i].textContent = '⭐';
-        }, 300 * index);
-        index++;
-      }
+          cell.innerText = '⭐';
+        }, index * 300);
+      });
+
+      updateChance();
     }
   </script>
 </body>
 </html>
+
 
 
 
